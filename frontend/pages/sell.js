@@ -1,9 +1,12 @@
 import CreateItem from '../components/CreateItem';
+import PlaseSignIn from '../components/PleaseSignIn';
 
 const Sell = () => {
   return (
     <div>
-      <CreateItem />
+      <PlaseSignIn>
+        <CreateItem />
+      </PlaseSignIn>
     </div>
   );
 };
