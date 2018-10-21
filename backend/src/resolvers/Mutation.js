@@ -171,6 +171,51 @@ const Mutations = {
       },
       info
     )
+  },
+  async addToCart(parent, args, ctx, info) {
+    const { userId } = ctx.request;
+    if (!userId) {
+      throw new Error('You must be signed in soon');
+    }
+    const [existingCartItem] = await ctx.db.query.cartItems({
+      where: {
+        user: { id: userId },
+        item: { id: args.id }
+      }
+    });
+    if (existingCartItem) {
+      console.log('This item is already in their cart');
+      return ctx.db.mutation.updateCartItem({
+        where: { id: existingCartItem.id },
+        data: { quantity: existingCartItem.quantity + 1 }
+      }, info)
+    }
+    return ctx.db.mutation.createCartItem({
+      data: {
+        user: {
+          connect: { id: userId }
+        },
+        item: {
+          connect: { id: args.id }
+        },
+        quantity: 1
+      }
+    }, info);
+  },
+  async removeFromCart(parent, { id }, ctx, info) {
+    const cartItem = await ctx.db.query.cartItem(
+      {
+        where: { id }
+      },
+      `{ id, user { id }}`
+    );
+    if (!cartItem) {
+      throw new Error(`No such cart item found for id ${id}`);
+    }
+    if (cartItem.user.id !== ctx.request.userId) {
+      throw new Error(`Cheatin huhhhh`);
+    }
+    return ctx.db.mutation.deleteCartItem({ where: { id } }, info);
   }
 };
 
